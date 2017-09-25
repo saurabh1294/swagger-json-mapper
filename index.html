@@ -1,0 +1,181 @@
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+
+<div class="container" style="margin-top: 20px;">
+    <div class="row">
+        <div class="col-lg-6 col-sm-6 col-12">
+            <h1>Swagger Interceptor demo</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="input-group">
+                <label class="input-group-btn">
+                    <span class="btn btn-primary">
+                        Browse&hellip; <input type="file" style="display: none;" multiple>
+                    </span>
+                </label>
+                <input type="text" class="form-control" readonly>
+            </div>
+            <span class="help-block">
+                Browse and select swagger file to be intercepted
+            </span>
+			<h2>OR</h2>
+			<span class="help-block">
+                Paste swagger file here
+            </span>
+			<div class="col-sm-12">
+				<div class="form-group">
+					<textarea class="form-control" id="swaggerYAML" rows="5" style="color:orange"></textarea>
+				</div>
+			</div>
+
+            <div class="form-group">
+                <!-- API endpoint -->
+                <label for="full_name_id" class="control-label">API endpoint</label>
+                <input type="text" class="form-control" id="api_endpoint" name="full_name" placeholder="API endpoint">
+            </div>
+
+            <div class="form-group">
+                <!-- Param 1 -->
+                <label for="param_1" class="control-label">Param1</label>
+                <input type="text" class="form-control" id="param_1" name="param1" placeholder="Param1">
+            </div>
+
+            <div class="form-group">
+                <!-- Param 2 -->
+                <label for="param_2" class="control-label">Param2</label>
+                <input type="text" class="form-control" id="param_2" name="param2" placeholder="Param2">
+            </div>
+
+            <div class="form-group">
+                <!-- Param 3-->
+                <label for="param_3" class="control-label">Param3</label>
+                <input type="text" class="form-control" id="param_3" name="param3" placeholder="Param3">
+            </div>
+
+
+            <div class="form-group">
+                <!-- Submit Button -->
+                <button type="button" class="btn btn-primary" onclick="submit()">Submit</button>
+            </div>
+        </div>
+
+	<h4>Search Result by input key in swagger JSON</h4>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <textarea class="form-control" id="searchresult"rows="20" style="color:green" readonly></textarea>
+            </div>
+        </div>
+    </div>
+	
+	<h2>Swagger file to JSON mapping</h2>
+	<div class="col-sm-12">
+		<div class="form-group">
+			<textarea class="form-control" id="swaggerToJSON" rows="20" style="color:blue" readonly></textarea>
+		</div>
+    </div>
+</div>
+
+
+
+
+<script>
+    function submit() {		
+		if ($("textarea#swaggerYAML").val()) {
+			var obj = {
+				yamlString: $("textarea#swaggerYAML").val()
+			}
+		
+			$.post("/YAMLToJSONObject", obj, function() {
+                // successful
+            })
+            .done(function() {})
+            .fail(function() {
+                //document.getElementById("output").innerHTML = "Request Couldn't be completed!! Please retry..";
+            })
+            .always(function(data, error, xhr) {
+				var result = getObject(data.output, $('#api_endpoint').val());
+				var output = (result) ? result : 'Given JSON key not found in swagger JSON';
+				$("textarea#searchresult").html(JSON.stringify(output, 0, 4));
+				$("#swaggerToJSON").val(JSON.stringify(data.output, 0, 4));
+            });
+		} else {
+			var json = {
+				filename: $('input.form-control').val()
+			}
+			$.post("/intercept", json, function() {
+                // successful
+            })
+            .done(function() {})
+            .fail(function() {
+                //document.getElementById("output").innerHTML = "Request Couldn't be completed!! Please retry..";
+            })
+            .always(function(data, error, xhr) {
+				var result = getObject(data.output, $('#api_endpoint').val());
+				var output = (result) ? result : 'Given JSON key not found in swagger JSON';
+				$("textarea#searchresult").html(JSON.stringify(output, 0, 4));
+				$("#swaggerToJSON").val(JSON.stringify(data.output, 0, 4));
+            });
+		}
+    }
+
+
+    function getObject(theObject, key) {
+        var result = null;
+        if (theObject instanceof Array) {
+            for (var i = 0; i < theObject.length; i++) {
+                result = getObject(theObject[i], key);
+                if (result) {
+                    break;
+                }
+            }
+        } else {
+            for (var prop in theObject) {
+                if (prop == key) {
+                    return theObject[prop];
+                }
+                if (theObject[prop] instanceof Object || theObject[prop] instanceof Array) {
+                    result = getObject(theObject[prop], key);
+                    if (result) {
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+
+
+    $(function() {
+
+        // We can attach the `fileselect` event to all file inputs on the page
+        $(document).on('change', ':file', function() {
+            var input = $(this),
+                numFiles = input.get(0).files ? input.get(0).files.length : 1,
+                label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+            input.trigger('fileselect', [numFiles, label]);
+        });
+
+        // We can watch for our custom `fileselect` event like this
+        $(document).ready(function() {
+            $(':file').on('fileselect', function(event, numFiles, label) {
+
+                var input = $(this).parents('.input-group').find(':text'),
+                    log = numFiles > 1 ? numFiles + ' files selected' : label;
+
+                if (input.length) {
+                    input.val(log);
+                } else {
+                    if (log) alert(log);
+                }
+
+            });
+        });
+
+    });
+</script>
