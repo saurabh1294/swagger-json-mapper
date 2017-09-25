@@ -98,10 +98,7 @@
                 //document.getElementById("output").innerHTML = "Request Couldn't be completed!! Please retry..";
             })
             .always(function(data, error, xhr) {
-				var result = getObject(data.output, $('#api_endpoint').val());
-				var output = (result) ? result : 'Given JSON key not found in swagger JSON';
-				$("textarea#searchresult").html(JSON.stringify(output, 0, 4));
-				$("#swaggerToJSON").val(JSON.stringify(data.output, 0, 4));
+				displayOutput(data);
             });
 		} else {
 			var json = {
@@ -115,14 +112,17 @@
                 //document.getElementById("output").innerHTML = "Request Couldn't be completed!! Please retry..";
             })
             .always(function(data, error, xhr) {
-				var result = getObject(data.output, $('#api_endpoint').val());
-				var output = (result) ? result : 'Given JSON key not found in swagger JSON';
-				$("textarea#searchresult").html(JSON.stringify(output, 0, 4));
-				$("#swaggerToJSON").val(JSON.stringify(data.output, 0, 4));
+				displayOutput(data);
             });
 		}
     }
 
+	function displayOutput(data) {
+		var result = getObject(data.output, $('#api_endpoint').val());
+		var output = (result) ? result : 'Given JSON key not found in swagger JSON';
+		$("textarea#searchresult").html(JSON.stringify(output, 0, 4));
+		$("#swaggerToJSON").val(JSON.stringify(data.output, 0, 4));
+	}
 
     function getObject(theObject, key) {
         var result = null;
