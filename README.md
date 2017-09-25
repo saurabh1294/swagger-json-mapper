@@ -1,6 +1,11 @@
 Install nodejs from http://nodejs.org
 
-npm install express;
-npm install body-parser;
-npm install swagger-parser;
-npm install yamljs;
+Then from your project directory, fire the below commands
+
+1) npm install express
+
+2) npm install body-parser
+
+3) npm install swagger-parser
+
+4) npm install yamljs
