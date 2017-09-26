@@ -21,35 +21,72 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/intercept', function(req, res) 
 {
-	SwaggerParser.bundle(req.body.filename).then(function(api) {
-		//console.log("Intercepting Swagger to JSON bundle", api);
-		res.send({output:api});
-	});
+	if (req.body.type === 'YAMLText') {
+		nativeObject = YAML.parse(req.body.yamlString);
+		//res.send({output:nativeObject});
+		SwaggerParser.bundle(nativeObject).then(function(api) {
+			//console.log("Intercepting Swagger to JSON bundle", api);
+			res.send({output:api});
+		});
+	} else {
+		SwaggerParser.bundle(req.body.filename).then(function(api) {
+			//console.log("Intercepting Swagger to JSON bundle", api);
+			res.send({output:api});
+		});
+	}
 });
 
 app.post('/parse', function(req, res) 
 {
-	SwaggerParser.parse(req.body.filename).then(function(data) {
-		//console.log("Parsed swagger : ", data);
-		res.send({output:data});
-	});
+	if (req.body.type === 'YAMLText') {
+		nativeObject = YAML.parse(req.body.yamlString);
+		//res.send({output:nativeObject});
+		SwaggerParser.parse(nativeObject).then(function(api) {
+			//console.log("Intercepting Swagger to JSON bundle", api);
+			res.send({output:api});
+		});
+	} else {
+		SwaggerParser.parse(req.body.filename).then(function(data) {
+			//console.log("Parsed swagger : ", data);
+			res.send({output:data});
+		});
+	}
 });
 
 app.post('/dereference', function(req, res) 
 {
-	SwaggerParser.dereference(req.body.filename).then(function(data) {
+	if (req.body.type === 'YAMLText') {
+		nativeObject = YAML.parse(req.body.yamlString);
+		//res.send({output:nativeObject});
+		SwaggerParser.dereference(nativeObject).then(function(api) {
+			//console.log("Intercepting Swagger to JSON bundle", api);
+			res.send({output:api});
+		});
+	} else {
+		SwaggerParser.dereference(req.body.filename).then(function(data) {
 		//console.log("Dereferenced swagger : ", data);
 		res.send({output:data});
-	});
+		});
+	}
 });
 
 app.post('/resolve', function(req, res) 
 {
-	SwaggerParser.resolve(req.body.filename).then(function(data) {
-		var serialized = CircularJSON.stringify(data);
-		//console.log("Resolved swagger : ", data, serialized);
-		res.send(jsBeautify.js_beautify(serialized));
-	});
+	if (req.body.type === 'YAMLText') {
+		nativeObject = YAML.parse(req.body.yamlString);
+		//res.send({output:nativeObject});
+		SwaggerParser.resolve(nativeObject).then(function(data) {
+			var serialized = CircularJSON.stringify(data);
+			//console.log("Resolved swagger : ", data, serialized);
+			res.send(jsBeautify.js_beautify(serialized));
+		});
+	} else {
+		SwaggerParser.resolve(req.body.filename).then(function(data) {
+			var serialized = CircularJSON.stringify(data);
+			//console.log("Resolved swagger : ", data, serialized);
+			res.send(jsBeautify.js_beautify(serialized));
+		});
+	}
 });
 
 app.post('/YAMLToJSONObject', function(req, res) 
