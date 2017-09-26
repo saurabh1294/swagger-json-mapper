@@ -3,12 +3,19 @@
 <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
 <link rel="icon" href="images/swagger.ico" type="image/x-icon" />
 
+
+<h1 style="text-align:center"><u>Swagger Interceptor demo</u></h1>
+
 <div class="container" style="margin-top: 20px;">
-    <div class="row">
-        <div class="col-lg-6 col-sm-6 col-12">
-            <h1>Swagger Interceptor demo</h1>
-        </div>
-    </div>
+
+	<div class="row">
+		<div class="col-lg-6 col-12 col-sm-6">
+			<h4>Swagger input form</h4>
+		</div>
+		<div class="col-lg-6 col-12 col-sm-6">
+			<h4>Search Result by input key in swagger JSON</h4>
+		</div>
+	</div>
 
     <div class="row">
         <div class="col-sm-6">
@@ -59,12 +66,14 @@
 
 
             <div class="form-group">
-                <!-- Submit Button -->
-                <button type="button" class="btn btn-primary" onclick="submit()">Submit</button>
+                <!-- Buttons -->
+                <button type="button" class="btn btn-primary" onclick="search()">Search</button>
+				<button type="button" class="btn btn-primary" onclick="dereference()">Dereference</button>
+				<button type="button" class="btn btn-primary" onclick="parse()">Parse</button>
+				<button type="button" class="btn btn-primary" onclick="resolve()">Resolve</button>
             </div>
         </div>
 
-	<h4>Search Result by input key in swagger JSON</h4>
         <div class="col-sm-6">
             <div class="form-group">
                 <textarea class="form-control" id="searchresult"rows="20" style="color:green" readonly></textarea>
@@ -72,25 +81,74 @@
         </div>
     </div>
 	
-	<h2>Swagger file to JSON mapping</h2>
-	<div class="col-sm-12">
-		<div class="form-group">
-			<textarea class="form-control" id="swaggerToJSON" rows="20" style="color:blue" readonly></textarea>
+	
+	<div class="row">
+		<div class="col-lg-6 col-12 col-sm-6">
+			<h4>Swagger file to JSON mapping</h4>
 		</div>
-    </div>
+		<div class="col-lg-6 col-12 col-sm-6">
+			<h4>Swagger file Dereferenced output</h4>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-lg-6 col-12 col-sm-6">
+			<div class="form-group">
+				<textarea class="form-control" id="swaggerToJSON" rows="20" style="color:blue" readonly></textarea>
+			</div>
+		</div>
+		
+		
+		<div class="col-sm-6 col-lg-6 col-12">
+			<div class="form-group">
+				<textarea class="form-control" id="swaggerDereference" rows="20" style="color:red" readonly></textarea>
+			</div>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-lg-6 col-12 col-sm-6">
+			<h4>Swagger file Parse output</h4>
+		</div>
+		<div class="col-lg-6 col-12 col-sm-6">
+			<h4>Swagger file Resolved output</h4>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-lg-6 col-12 col-sm-6">
+			<div class="form-group">
+				<textarea class="form-control" id="swaggerParse" rows="20" style="color:brown" readonly></textarea>
+			</div>
+		</div>
+		
+		<div class="col-sm-6 col-lg-6 col-12">
+			<div class="form-group">
+				<textarea class="form-control" id="swaggerResolve" rows="20" style="color:purple" readonly></textarea>
+			</div>
+		</div>
+	</div>
+	
+	
+	
 </div>
 
 
 
 
 <script>
-    function submit() {		
+
+
+	function callAPI(endpoint, id) {
+		var json = {};
+		
 		if ($("textarea#swaggerYAML").val()) {
-			var obj = {
-				yamlString: $("textarea#swaggerYAML").val()
+			json = {
+				yamlString: $("textarea#swaggerYAML").val(),
+				type: 'YAMLText'
 			}
 		
-			$.post("/YAMLToJSONObject", obj, function() {
+			$.post("/YAMLToJSONObject", json, function() {
                 // successful
             })
             .done(function() {})
@@ -98,13 +156,27 @@
                 //document.getElementById("output").innerHTML = "Request Couldn't be completed!! Please retry..";
             })
             .always(function(data, error, xhr) {
-				displayOutput(data);
+				displayOutput(data, id);
             });
+			
+			
+			$.post(endpoint, json, function() {
+                // successful
+            })
+            .done(function() {})
+            .fail(function() {
+                //document.getElementById("output").innerHTML = "Request Couldn't be completed!! Please retry..";
+            })
+            .always(function(data, error, xhr) {
+				displayOutput(data, id);
+            });
+			
+			
 		} else {
-			var json = {
+			json = {
 				filename: $('input.form-control').val()
 			}
-			$.post("/intercept", json, function() {
+			$.post(endpoint, json, function() {
                 // successful
             })
             .done(function() {})
@@ -112,16 +184,46 @@
                 //document.getElementById("output").innerHTML = "Request Couldn't be completed!! Please retry..";
             })
             .always(function(data, error, xhr) {
-				displayOutput(data);
+				displayOutput(data, id);
             });
 		}
+		
+		//alert(JSON.stringify(json));
+		
+		
+	}
+
+    function search() {
+		callAPI("/intercept", "searchresult");
     }
 
-	function displayOutput(data) {
+	function dereference() {
+		callAPI("/dereference", "swaggerDereference");
+	}
+	
+	function resolve() {
+		callAPI("/resolve", "swaggerResolve");
+	}
+	
+	function parse() {
+		callAPI("/parse", "swaggerParse");
+	}
+	
+	function displayOutput(data, id) {
 		var result = getObject(data.output, $('#api_endpoint').val());
-		var output = (result) ? result : 'Given JSON key not found in swagger JSON';
-		$("textarea#searchresult").html(JSON.stringify(output, 0, 4));
-		$("#swaggerToJSON").val(JSON.stringify(data.output, 0, 4));
+		var output = "";
+		(id === "searchresult") ? output = (result) ? result : 'Given JSON key not found in swagger JSON' :
+			output = (data) ? data.output : "API call failed";
+		$("textarea#"+id).html(JSON.stringify(output, 0, 4));
+		if (id === "searchresult") {
+			$("#swaggerToJSON").val(JSON.stringify(data.output, 0, 4));
+		}
+		
+		if (id === "swaggerResolve") {
+			var output = (data.output) ? JSON.stringify(output, 0, 4) : data;
+			$("textarea#"+id).val(output);
+			console.log(data);
+		}
 	}
 
     function getObject(theObject, key) {
@@ -152,7 +254,6 @@
 
 
     $(function() {
-
         // We can attach the `fileselect` event to all file inputs on the page
         $(document).on('change', ':file', function() {
             var input = $(this),
@@ -164,10 +265,8 @@
         // We can watch for our custom `fileselect` event like this
         $(document).ready(function() {
             $(':file').on('fileselect', function(event, numFiles, label) {
-
                 var input = $(this).parents('.input-group').find(':text'),
                     log = numFiles > 1 ? numFiles + ' files selected' : label;
-
                 if (input.length) {
                     input.val(log);
                 } else {
@@ -176,6 +275,5 @@
 
             });
         });
-
     });
 </script>
