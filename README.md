@@ -9,3 +9,7 @@ Then from your project directory, fire the below commands
 3) npm install swagger-parser
 
 4) npm install yamljs
+
+5) npm install js-beautify
+
+6) npm install circular-json

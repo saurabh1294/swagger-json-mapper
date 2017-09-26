@@ -11,10 +11,9 @@ var app = express();
 var bodyParser = require('body-parser')
 var SwaggerParser = require('swagger-parser');
 var YAML = require('yamljs');
-var port = 8000;
 var CircularJSON = require('circular-json');
 var jsBeautify = require('js-beautify');
-
+var port = 8000;
 
 
 app.use(express.static(__dirname));
